@@ -1,0 +1,549 @@
+swagger: '2.0'
+info:
+  description: >-
+    This is audit-api serves evidences for a continuous audit. In the EU-Sec project such evidences are collected and evaluated to determine the compliance status based on controls from the    [ccm](https://cloudsecurityalliance.org/group/cloud-controls-matrix).
+  version: 1.0.5
+  
+  title: EU-SEC CA API
+  termsOfService: http://www.sec-cert.eu/
+  contact:
+    email: contact@sec-cert.eu
+    url: http://www.sec-cert.eu/
+basePath: /euseccaapi
+tags:
+  - name: ca_api_scope
+    description: audit api calls
+  - name: ca_api_objects
+    description: audit api calls
+  - name: ca_api_persistence
+    description: audit api calls
+  - name: ca_api_iam
+    description: audit api calls
+schemes:
+  - https
+  - http
+paths:
+  '/scopes/':
+    get:
+      tags:
+        - ca_api_scope
+      summary: Returns all scopes of the cloud service
+      description: >-
+        Returns the available scopes for the cloud service. The scope corresponds often with the layers of the cloud service architecture like IaaS, PaaS, SaaS.
+      operationId: getScopes
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/ScopeResponse'
+        '405':
+          description: Invalid input
+      security:
+        - api_key: []
+      x-swagger-router-controller: CaApiScope
+  '/{scope}/objects/':
+    get:
+      tags:
+        - ca_api_objects
+      summary: Returns Object ids of all objects that are in the scope of the audit.
+      description: >-
+        Returns the auditable object ids that are subject to the audit. The results can be limited according to a time range.
+      operationId: getObjects
+      produces:
+        - application/json
+      parameters:
+        - name: from
+          in: query
+          description: in ISO-8601 formart
+          type: string
+        - name: limit
+          in: query
+          description: Limits the number of retuned values
+          required: false
+          type: integer
+        - name: scope
+          in: path
+          description: Scope of service
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/ObjectResponse'
+        '405':
+          description: Invalid input
+      security:
+        - api_key: []
+      x-swagger-router-controller: CaApiObjects
+  '/{scope}/persistence/{objectId}/storage/':
+    get:
+      tags:
+        - ca_api_persistence
+      summary: Returns persistence information for a particular data object by its Id
+      description: >-
+        Depending on the kind of storage this call returns an identifier of the
+        particular storage entity. E.g database name, RDS id, Harddrive, SMB
+        location etc. If stored on multiple services all are returned. Based on
+        CCM-GRM-02. This requires each logical object to be traceable to its
+        physical persistence capabilities.
+      operationId: getStorage
+      produces:
+        - application/json
+      parameters:
+        - name: objectId
+          in: path
+          description: ID of data object to return
+          required: true
+          type: string
+        - name: scope
+          in: path
+          description: Scope of service
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/LocationStorageResponse'
+        '405':
+          description: Invalid input
+      security:
+        - api_key: []
+      x-swagger-router-controller: CaApiPersistence
+  '/{scope}/persistence/{objectId}/location/':
+    get:
+      tags:
+        - ca_api_persistence
+      summary: >-
+        Returns location the ISO 3166-1 alpha-2 country code of the location of
+        the data of the object
+      description: >-
+        Retrieves the data location of an object. Returns location the ISO
+        3166-1 alpha-2 country code of the location of the data of the object. Based on
+        CCM-STA-05.
+      operationId: getLocation
+      produces:
+        - application/json
+      parameters:
+        - name: objectId
+          in: path
+          description: ID of either objectId on SaaS level or storeageId on lower level
+          required: true
+          type: string
+        - name: scope
+          in: path
+          description: Scope of the service
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/GeoLocation'
+        '405':
+          description: Invalid input
+      security:
+        - api_key: []
+      x-swagger-router-controller: CaApiPersistence
+  '/{scope}/persistence/{objectId}/encryption':
+    get:
+      tags:
+        - ca_api_persistence
+      summary: Retrieves the encryption info of an object.
+      description: >-
+        Based on CCM-EKM-04. Retrieves the encryption info of an object. Propper
+        interpretation has to be performed by the audit tool.
+      operationId: getEncryptionInfo
+      produces:
+        - application/json
+      parameters:
+        - name: objectId
+          in: path
+          description: ID of either objectId on SaaS level or storeageId on lower level
+          required: true
+          type: string
+        - name: scope
+          in: path
+          description: Scope of the service
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/EncryptionStorageResponse'
+        '405':
+          description: Invalid input
+      security:
+        - api_key: []
+      x-swagger-router-controller: CaApiPersistence
+  '/{scope}/identityfederation/admins/':
+    get:
+      tags:
+        - ca_api_iam
+      summary: Returns a list of administrators
+      description: >-
+        Based on CCM-IAM-12. Reads out all administrators of the application and
+        returns them.
+      operationId: getAdmins
+      produces:
+        - application/json
+      parameters: 
+        - name: scope
+          in: path
+          description: Scope of the service
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/AdminResponse'
+        '405':
+          description: Invalid input
+      security:
+        - api_key: []
+      x-swagger-router-controller: CaApiIam
+  '/{scope}/identityfederation/{userId}/groups':
+    get:
+      tags:
+        - ca_api_iam
+      summary: Returns the groups of a user
+      description: >-
+        Based on CCM-IAM-12. Depending on the implementation a group can be e.g
+        a unix group, organisation, role etc.
+      operationId: getUserOrganisation
+      produces:
+        - application/json
+      parameters:
+        - name: userId
+          in: path
+          description: ID of user
+          required: true
+          type: string
+        - name: scope
+          in: path
+          description: Scope of the service
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/GroupsResponse'
+        '405':
+          description: Invalid input
+      security:
+        - api_key: []
+      x-swagger-router-controller: CaApiIam
+  '/{scope}/identityfederation/{userId}/auth':
+    get:
+      tags:
+        - ca_api_iam
+      summary: 'Returns the authentication type of a user. E.g password, two-factor'
+      description: >-
+        Based on CCM-IAM-12. Reads out a particular users authentication
+        settings and returns them. Propper interpretation has to be performed by
+        the audit tool.
+      operationId: getUserAuthType
+      produces:
+        - application/json
+      parameters:
+        - name: userId
+          in: path
+          description: ID of user
+          required: true
+          type: string
+        - name: scope
+          in: path
+          description: Scope of the service
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/AdminAuth'
+        '405':
+          description: Invalid input
+      security:
+        - api_key: []
+      x-swagger-router-controller: CaApiIam
+  '/{scope}/identityfederation/{userId}/logins':
+    get:
+      tags:
+        - ca_api_iam
+      summary: Returns a list of the last logins of a user
+      description: >-
+        Based on CCM-IAM-12. Whenever a user logs in into the application this
+        kind access gets logged. This call returns the last accesses of a
+        particular user based on existing logs.
+      operationId: getUserAccesses
+      produces:
+        - application/json
+      parameters:
+        - name: userId
+          in: path
+          description: ID of user
+          required: true
+          type: string
+        - name: from
+          in: query
+          description: from date in ISO-8601 format
+          required: false
+          type: string
+        - name: limit
+          in: query
+          description: Limits the number of retuned values
+          required: false
+          type: integer
+        - name: scope
+          in: path
+          description: Scope of the service
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/LoginResponse'
+        '405':
+          description: Invalid input
+      security:
+        - api_key: []
+      x-swagger-router-controller: CaApiIam
+  '/{scope}/identityfederation/data/access':
+    post:
+      tags:
+        - ca_api_iam
+      summary: Checks whether a user has a certain access to an object.
+      description: Checks whether a user has a certain access to an object.
+      operationId: getObjectAccess
+      produces:
+        - application/json
+      parameters:
+        - name: request
+          in: body
+          description: request object
+          required: true
+          schema:
+            $ref: '#/definitions/AccessRequest'
+        - name: scope
+          in: path
+          description: Scope of the service
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/AccessResponse'
+        '405':
+          description: Invalid input
+      security:
+        - api_key: []
+      x-swagger-router-controller: CaApiIam
+securityDefinitions:
+  basic_auth:
+    type: basic
+  api_key:
+    type: apiKey
+    name: api_key
+    in: header
+definitions:
+  ScopeResponse:
+    type: object
+    properties:
+      scopes:
+        type: array
+        items:
+          type: string
+        example: 
+          - SaaS
+          - PasS
+          - IaaS
+    required: 
+      - scopes
+  ObjectResponse:
+    type: object
+    properties:
+      objects:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            type:
+              type: string
+        example:
+          - id: m121
+            type: message
+          - id: f6
+            type: file
+          - id: COO.200.200.2.244
+            type: file
+      
+  LocationStorageResponse:
+    type: object
+    properties:
+      storages:
+        type: array
+        items:
+          type: object
+          properties:
+            storageUri:
+              type: string
+            type:
+              $ref: '#/definitions/StorageType'
+            description:
+              type: string
+              description: Description should have comments that specify information, that will be stored in the description field. E.g., based on 5.6. call, description should contain technical details like database type with its version.
+          required: 
+            - storageUri
+            - type
+        example:
+          - uri: i-0434c5582f2853d0c
+            type: service
+            description: AWS EC2 insctance
+          - uri: vol-04b6088c76eb68a73
+            type: service
+            description: AWS EBS instance
+          - uri: jdbc:mysql://192.168.0.10/SuperDB
+            type: database
+    required: 
+      - storages
+  EncryptionStorageResponse:
+    type: object
+    properties:
+      encryption:
+        type: object
+        description: Object contains information about the key origin depending on type
+        properties:
+          keyOriginUri:
+            type: string
+
+          algorithm:
+            type: string
+          type:
+            $ref: '#/definitions/KeyOriginType'
+          description:
+            type: string
+            description: Comments on technical details of the key origin.
+        required: 
+          - keyOriginUri
+          - type
+    example:
+      encryption:
+        keyOriginUri: hsm://secret.datacenterX
+        type: hsm
+        description: Supersecure HSM
+        algorithm: RSA-OAEP 2048 SHA-256
+    required: 
+      - keyOrigin
+  AdminAuth:
+    type: object
+    properties:
+      type:
+        $ref: '#/definitions/AuthType'
+      description:
+        type: string
+    required: 
+      - type
+  AccessType:
+    type: string
+    enum:
+      - fullAccess
+      - changeAccess
+      - readAccess
+  StorageType:
+    type: string
+    enum:
+      - database
+      - filesystem
+      - service
+      - other
+  KeyOriginType:
+    type: string
+    enum: 
+     - hsm
+     - localKeyFile
+     - other
+  AuthType:
+    type: string
+    enum: 
+     - oneFactor
+     - twoFactor
+     - multiFactor
+  GeoLocation:
+    type: object
+    properties:
+      countryCode:
+        type: string
+        example: at
+        description: ISO 3166-1 alpha-2 country code
+    required: 
+      - countryCode
+  AccessRequest:
+    type: object
+    properties:
+      userId:
+        type: string
+      objectId:
+        type: string
+      access:
+        $ref: '#/definitions/AccessType'
+    required: 
+      - userId
+      - objectId
+      - access
+  GroupsResponse:
+    type: object
+    properties:
+      groups:
+        type: array
+        items:
+          type: string
+        example:
+          - root
+          - awsEc2Full
+          - users
+    required: 
+      - groups
+  LoginResponse:
+    type: object
+    properties:
+      loginTimes:
+        type: array
+        description: 'List of iso date time. Y-m-d\TH:i:sO ISO-8601'
+        items:
+          type: string
+        example:
+          - '2005-08-15T15:52:01+0000'
+    required: 
+      - loginTimes
+  AccessResponse:
+    type: object
+    properties:
+      allowed:
+        type: boolean
+        description: true if access is allowd and false if its not.
+    required: 
+      - allowed
+  AdminResponse:
+    type: object
+    properties:
+      admins:
+        type: array
+        items:
+          type: string
+        example:
+          - adminXYZ
+          - root
+          - caixaAuth
+    required: 
+      - admins
+    
