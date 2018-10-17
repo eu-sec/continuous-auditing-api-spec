@@ -2,7 +2,7 @@ swagger: '2.0'
 info:
   description: >-
     This is audit-api serves evidences for a continuous audit. In the EU-Sec project such evidences are collected and evaluated to determine the compliance status based on controls from the    [ccm](https://cloudsecurityalliance.org/group/cloud-controls-matrix).
-  version: 1.0.5
+  version: 1.0.6
   
   title: EU-SEC CA API
   termsOfService: http://www.sec-cert.eu/
@@ -346,6 +346,37 @@ paths:
       security:
         - api_key: []
       x-swagger-router-controller: CaApiIam
+  '/{scope}/identityfederation/{userId}/passwordRequirements':
+    get:
+      tags:
+        - ca_api_iam
+      summary: returns the password requirements for a specific user
+      description: >-
+        Based on CCM-IAM-12. Strong authentication might require a strong password. Password requirements are a indicator for strong password and therefore can be part of an audit.
+      operationId: getPasswordRequirements
+      produces:
+        - application/json
+      parameters:
+        - name: userId
+          in: path
+          description: ID of user
+          required: true
+          type: string
+        - name: scope
+          in: path
+          description: Scope of the service
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/PasswordRequirementsResponse'
+        '405':
+          description: Invalid input
+      security:
+        - api_key: []
+      x-swagger-router-controller: CaApiIam
 securityDefinitions:
   basic_auth:
     type: basic
@@ -546,4 +577,19 @@ definitions:
           - caixaAuth
     required: 
       - admins
+  PasswordRequirementsResponse:
+    type: object
+    properties:
+      passwordRequirements:
+        type: object
+        properties:
+          minimalLength:
+            type: integer
+            example: 10
+          upperAndLowerCaseEnforcement:
+            type: boolean
+          numericCharacterEnforcement:
+            type: boolean
+          specialCharacterEnforcement:
+            type: boolean
     
