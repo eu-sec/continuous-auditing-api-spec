@@ -2,7 +2,7 @@ swagger: '2.0'
 info:
   description: >-
     This is audit-api serves evidences for a continuous audit. In the EU-Sec project such evidences are collected and evaluated to determine the compliance status based on controls from the    [ccm](https://cloudsecurityalliance.org/group/cloud-controls-matrix).
-  version: 1.0.7
+  version: 1.0.8
   title: EU-SEC CA API
   termsOfService: http://www.sec-cert.eu/
   contact:
@@ -43,6 +43,7 @@ paths:
           description: Invalid input
       security:
         - api_key: []
+        - basic_auth: []
       x-swagger-router-controller: CaApiScope
   '/{scope}/objects/':
     get:
@@ -82,6 +83,7 @@ paths:
           description: Invalid input
       security:
         - api_key: []
+        - basic_auth: []
       x-swagger-router-controller: CaApiObjects
   '/{scope}/persistence/{objectId}/storage/':
     get:
@@ -117,6 +119,7 @@ paths:
           description: Invalid input
       security:
         - api_key: []
+        - basic_auth: []
       x-swagger-router-controller: CaApiPersistence
   '/{scope}/persistence/{objectId}/location/':
     get:
@@ -152,6 +155,7 @@ paths:
           description: Invalid input
       security:
         - api_key: []
+        - basic_auth: []
       x-swagger-router-controller: CaApiPersistence
   '/{scope}/persistence/{objectId}/encryption':
     get:
@@ -184,6 +188,7 @@ paths:
           description: Invalid input
       security:
         - api_key: []
+        - basic_auth: []
       x-swagger-router-controller: CaApiPersistence
   '/{scope}/identityfederation/admins/':
     get:
@@ -211,6 +216,7 @@ paths:
           description: Invalid input
       security:
         - api_key: []
+        - basic_auth: []
       x-swagger-router-controller: CaApiIam
   '/{scope}/identityfederation/{userId}/groups':
     get:
@@ -243,6 +249,7 @@ paths:
           description: Invalid input
       security:
         - api_key: []
+        - basic_auth: []
       x-swagger-router-controller: CaApiIam
   '/{scope}/identityfederation/{userId}/auth':
     get:
@@ -276,6 +283,7 @@ paths:
           description: Invalid input
       security:
         - api_key: []
+        - basic_auth: []
       x-swagger-router-controller: CaApiIam
   '/{scope}/identityfederation/{userId}/logins':
     get:
@@ -324,6 +332,7 @@ paths:
           description: Invalid input
       security:
         - api_key: []
+        - basic_auth: []
       x-swagger-router-controller: CaApiIam
   '/{scope}/identityfederation/data/access':
     post:
@@ -355,6 +364,7 @@ paths:
           description: Invalid input
       security:
         - api_key: []
+        - basic_auth: []
       x-swagger-router-controller: CaApiIam
   '/{scope}/identityfederation/{userId}/passwordRequirements':
     get:
@@ -386,6 +396,7 @@ paths:
           description: Invalid input
       security:
         - api_key: []
+        - basic_auth: []
       x-swagger-router-controller: CaApiIam
   '/{scope}/meta/submitted':
     get:
@@ -412,6 +423,7 @@ paths:
           description: Invalid input
       security:
         - api_key: []
+        - basic_auth: []
       x-swagger-router-controller: CaApiMeta
 securityDefinitions:
   basic_auth:
